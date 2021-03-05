@@ -1,25 +1,79 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react';
+import Dropzone from 'react-dropzone';
+import csv from 'csv';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+
+  onDrop(files) {
+
+    this.setState({ files });
+
+    var file = files[0];
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      csv.parse(reader.result, (err, data) => {
+
+        var userList = [];
+
+        for (var i = 0; i < data.length; i++) {
+          const name = data[i][0];
+          const newUser = { "name": name };
+          userList.push(newUser);
+
+          fetch('https://react-csv-test-default-rtdb.firebaseio.com/users.json', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newUser)
+          })
+        };
+      });
+    };
+
+    reader.readAsBinaryString(file);
+  }
+
+  render() {
+
+    const wellStyles = { maxWidth: 400, margin: '0 auto 10px' };
+    const fontSize = 5;
+
+    return (
+      <div align="center" oncontextmenu="return false">
+        <br /><br /><br />
+        <div className="dropzone">
+
+        <Dropzone accept=".csv" onDropAccepted={this.onDrop.bind(this)}>
+  {({getRootProps, getInputProps}) => (
+    <section>
+      <div {...getRootProps()}>
+        <input {...getInputProps()} />
+        <button > click here to upload csv </button> 
+      </div>
+    </section>
+  )}
+</Dropzone>
+
+{/* 
+          <Dropzone accept=".csv" onDropAccepted={this.onDrop.bind(this)}>   
+          
+          {dropzoneProps => {
+    return (
+      <div>
+        <p>Drop some files here</p>
+      </div>
+    );
+  }}
+          </Dropzone> */}
+          <br /><br /><br />
+        </div>
+        <h2>Upload or drop your <font size={fontSize} color="#00A4FF">CSV</font><br /> file here.</h2>
+      </div>
+    )
+  }
 }
 
 export default App;
